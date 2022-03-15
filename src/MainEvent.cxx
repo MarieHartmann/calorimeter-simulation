@@ -33,8 +33,11 @@
 #include "Event.h"
 #include "CellAddress.h"
 #include "CaloCell.h"
+#include "CaloGeometry.h"
+#include "CaloConstants.h"
 
 using namespace std;
+using namespace CalConst;
 
 void reconstruct(Event& event);
 void simulate(Event& event);
@@ -134,6 +137,20 @@ int main(int argc, char **argv)
     cout << "Energy = " << cell2.energy() << endl;
     cout << "Is address valid ? " << cell1.address().IsValid() << endl;
     cout << "X coordinate of the cell " << cell1.address().ix() << endl;
+
+// Test of the CaloGeometry class
+    double xyz[3];
+    CellAddress cell_ad3 = CellAddress();
+    xyz[0] =-1.06; //we expect Xcenter -1 and ix = -10
+    xyz[1] = 0.06; //we expect Ycenter 0.1 and iy = 1
+    xyz[2] = 0.; //we expect layers = 0
+
+    cout << "Is inside calorimeter ? " << CaloGeometry::IsInside(xyz, cell_ad3) << endl;
+    cout << "Coordinates " << cell_ad3.ix() << " "
+                           << cell_ad3.iy() << " "
+                           << cell_ad3.layer() << endl;
+    cout << "Xcenter " << CaloGeometry::xCentre(cell_ad3) << endl;
+    cout << "YCenter " << CaloGeometry::yCentre(cell_ad3) << endl;
 
 
     outFile.Close();
