@@ -19,6 +19,9 @@ public:
 	// Add the calorimeter cells to the vector of cell caldata.
 	void CalorimeterData(std::vector<CaloCell>& caldata) const;
 
+	// Give the index in caldata of the point.
+	int caldataIndex(int ix, int iy, int iz) const;
+
 	// Simulate a shower of a given energy, starting from the impact point (x,y)
 	// of the electron at the front end of the calorimeter.
 	// TODO: to be implemented.
