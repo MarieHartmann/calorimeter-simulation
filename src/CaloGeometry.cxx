@@ -15,24 +15,21 @@ bool CaloGeometry::IsInside(double xyz[3], CellAddress& cellAddress){
          y <= XYMax && XYMin <= y &&
          z <= ZMax && ZMin <= z )
        {
-           // We add, half the length of the XY cell because of the
-           // definition of the origin of x, y
-           cellAddress = CellAddress(int( ( x + XYSize/2.) / XYSize ),
-                                     int( ( y + XYSize/2.) / XYSize ),
+           // We take the origin of the indices of the cell on the bottom left
+           cellAddress = CellAddress(int( x / XYSize ),
+                                     int( y / XYSize ),
                                      int( z / ZSize );
            return true;
        }
-
     return false;
-
 }
 
 // Give the position of the cell center.
 double CaloGeometry::xCentre(const CellAddress& cellAddress){
-    int x = cellAddress.ix();
-    return x*XYSize;
+    int ix = cellAddress.ix();
+    return ix*XYSize;
 }
 double CaloGeometry::yCentre(const CellAddress& cellAddress){
-    int y = cellAddress.iy();
-    return y*XYSize;
+    int iy = cellAddress.iy();
+    return iy*XYSize;
 }

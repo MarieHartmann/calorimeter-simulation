@@ -11,6 +11,7 @@ CellAddress::CellAddress(){
 }
 
 // Full constructor.
+// We choose the cell (0,0) to be on the bottom left of the calorimeter
 CellAddress::CellAddress(int ix, int iy, int layer){
     m_ix = ix;
     m_iy = iy;
@@ -19,9 +20,9 @@ CellAddress::CellAddress(int ix, int iy, int layer){
 
 // Is the address valid.
 bool CellAddress::IsValid() const  {
-    return  (m_ix <= XYMax && XYMin <= m_ix &&
-       m_iy <= XYMax && XYMin <= m_iy &&
-       m_layer <= ZMax && ZMin <= m_layer );
+    return  (m_ix <= NbCellsInXY && 0 <= m_ix &&
+       m_iy <= NbCellsInXY && 0 <= m_iy &&
+       m_layer <= NbLayers && 0 <= m_layer );
 }
 
 // Accessors.

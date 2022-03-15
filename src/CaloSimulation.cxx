@@ -7,12 +7,12 @@ using namespace std;
 using namespace CalConst;
 
 CaloSimulation::void CalorimeterData(vector<CaloCell>& caldata) const{
-    for (int x=0; x< NbCellsInXY; x++){
-        for (int y=0; y<NbCellsInXY; y++){
-            for (int z=0; z<NbLayers; z++) {
-                CellAd = CellAddress(x-NbCellsInXY/2.,y-NbCellsInXY/2.,z);
+    for (int ix=0; ix < NbCellsInXY; ix++){
+        for (int iy=0; iy <NbCellsInXY; iy++){
+            for (int iz=0; iz<NbLayers; iz++) {
+                CellAd = CellAddress(ix,iy,iz);
                 CalCell = CaloCell(CellAd, 0.);
-                caldata.push_back();
+                caldata.push_back(CalCell);
             }
         }
      }
