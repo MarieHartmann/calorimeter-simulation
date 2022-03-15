@@ -7,9 +7,9 @@ using namespace std;
 using namespace CalConst;
 
 CaloSimulation::void CalorimeterData(vector<CaloCell>& caldata) const{
-    for (int ix=0; ix < NbCellsInXY; ix++){
+    for (int iz=0; iz < NbLayers; iz++){
         for (int iy=0; iy <NbCellsInXY; iy++){
-            for (int iz=0; iz<NbLayers; iz++) {
+            for (int ix=0; ix <NbCellsInXY; ix++) {
                 CellAd = CellAddress(ix,iy,iz);
                 CalCell = CaloCell(CellAd, 0.);
                 caldata.push_back(CalCell);
