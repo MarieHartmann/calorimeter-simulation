@@ -16,11 +16,9 @@ public:
 	CaloCell();
 
 	// Full constructor.
-	// TODO: to be implemented.
 	CaloCell(const CellAddress& ca, float energy);
 
 	// Accessors.
-	// TODO: to be implemented.
 	float energy() const;
 	CellAddress address() const;
 

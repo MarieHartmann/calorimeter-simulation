@@ -27,9 +27,12 @@
 #include "TFile.h"
 #include "TRandom3.h"
 #include "TTree.h"
+#include "TH1F.h"
 #include "TStopwatch.h"
 
 #include "Event.h"
+#include "CellAddress.h"
+#include "CaloCell.h"
 
 using namespace std;
 
@@ -44,7 +47,7 @@ int main(int argc, char **argv)
     int nEventsMax = 400;
     // If command line argument provided, take it as max number of events.
     if (argc > 1) nEventsMax = atoi(argv[1]);
-    
+
     // Create a new ROOT binary machine independent file.
     // Note that this file may contain any kind of ROOT objects, histograms,
     // pictures, graphics objects, detector geometries, tracks, events, etc..
@@ -62,9 +65,15 @@ int main(int argc, char **argv)
     int eventNumber;
     float eTrue;
     float eReco;
+    float eRecoBiais;
+    TH1F* h = new TH1F("h", "Calorimeter resolution", 100, -3., 3.);
+    TH1F* g = new TH1F("g", "Calorimeter resolution with biais", 100, -5., 5.);
     outTree.Branch("eventNumber", &eventNumber);
     outTree.Branch("eTrue", &eTrue);
     outTree.Branch("eReco", &eReco);
+    outTree.Branch("eRecoBiais", &eRecoBiais);
+    outTree.Branch("CaloRes", &h);
+    outTree.Branch("CaloResBiais", &g);
 
     // Create a dummy event that will be build in the loop.
     Event event;
@@ -89,6 +98,17 @@ int main(int argc, char **argv)
         // Prepare to fill the output tree.
         eTrue = event.eTrue();
         eReco = event.eReco();
+        eRecoBiais = event.eRecoBiais();
+        //histogram describing the calorimeter resolution
+        //it matches the distribution used in reconstruct.cxx
+        //flat, between -0.5 and 0.5
+        h->Fill(eReco-eTrue);
+        h->Fit("gaus");
+        //histogram discribing the biaised calorimeter resolution
+        //We find the 0.1GeV biais back
+        g->Fill(eRecoBiais-eTrue);
+        g->Fit("gaus");
+
         outTree.Fill(); // Fill the tree.
     } // End event loop
 
@@ -96,6 +116,29 @@ int main(int argc, char **argv)
     outFile.Write(); // Write all current in the current directory.
     outTree.Print();
 
+// Test of the CellAdress class
+    CellAddress cell_ad1, cell_ad2;
+    cell_ad1 = CellAddress(1,1,1);
+    cell_ad2 = CellAddress(5,1,1);
+
+    cout << "Is address valid ? " << cell_ad1.IsValid() << endl;
+    cout << "Is address valid ? " << cell_ad2.IsValid() << endl;
+    cout << "X coordinate of the cell " << cell_ad1.ix() << endl;
+
+// Test of the CaloCell class
+    CaloCell cell1, cell2;
+    cell1 = CaloCell(cell_ad1, 10);
+    cell2 = CaloCell(cell_ad2, 5);
+
+    cout << "Energy = " << cell1.energy() << endl;
+    cout << "Energy = " << cell2.energy() << endl;
+    cout << "Is address valid ? " << cell1.address().IsValid() << endl;
+    cout << "X coordinate of the cell " << cell1.address().ix() << endl;
+
+
     outFile.Close();
+
+
+
     return 0;
 }
