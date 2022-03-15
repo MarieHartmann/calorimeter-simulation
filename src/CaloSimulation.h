@@ -17,7 +17,6 @@ public:
 	CaloSimulation();
 
 	// Add the calorimeter cells to the vector of cell caldata.
-	// TODO: to be implemented.
 	void CalorimeterData(std::vector<CaloCell>& caldata) const;
 
 	// Simulate a shower of a given energy, starting from the impact point (x,y)
