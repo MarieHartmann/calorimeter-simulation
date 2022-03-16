@@ -56,20 +56,26 @@ void CaloSimulation::SimulateShower(float x, float y, float energy){
     xyz[0] = x;
     xyz[1] = y;
     xyz[2] = 0; // the impact is at the front end of the calorimeter
+
+    // we get the indices corresponding to the impact
     CellAddress cell_ad = CellAddress();
     CaloGeometry::IsInside(xyz,cell_ad);
     int ix0 = cell_ad.ix();
     int iy0 = cell_ad.iy();
     int iz0 = cell_ad.layer();
+    // we add the incident energy in the impact cell
     CaloCell ImpactCell = CaloCell(cell_ad,energy);
     caldata[caldataIndex(ix0,iy0,iz0)] = ImpactCell;
 
-
-    while( iz <= izMaxShower ) {
+    // while the particle is in the calo and has enough energy
+    while( iz <= izMaxShower && iz <= NbLayers ) {
+        // compute the energy difference between 2 layers
         float DeltaE = F->Integral(0, iz*NbLayers/X0);
         float energy_z = energy - DeltaE;
+        // loop over all cells in the layer
         for(int ix=0; ix < NbCellsInXY; ix++){
             for(int iy=0; iy < NbCellsInXY; iy++){
+                // and add the energy to the cell
                 CellAddress address = caldata[caldataIndex(ix,iy,iz)].address();
                 float NewEnergy = energy_z * GX->Eval(ix*XYSize) * GY->Eval(iy*XYSize) * XYSize * XYSize;
                 CaloCell NewCell = CaloCell(address,NewEnergy);
