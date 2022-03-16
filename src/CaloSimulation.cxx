@@ -12,16 +12,28 @@
 using namespace std;
 using namespace CalConst;
 
-void CaloSimulation::CalorimeterData(vector<CaloCell>& caldata) const{
+CaloSimulation::~CaloSimulation(){
+
+}
+
+void CaloSimulation(){
+
+}
+
+void CaloSimulation::CalorimeterData() const{
     for (int iz=0; iz < NbLayers; iz++){
         for (int iy=0; iy <NbCellsInXY; iy++){
             for (int ix=0; ix <NbCellsInXY; ix++) {
                 CellAddress CellAd = CellAddress(ix,iy,iz);
                 CaloCell CalCell = CaloCell(CellAd, 0.);
-                caldata.push_back(CalCell);
+                m_caldata.push_back(CalCell);
             }
         }
      }
+}
+
+vector<CaloCell> CaloSimulation::caldata() const{
+    return m_caldata;
 }
 
 int CaloSimulation::caldataIndex(int ix, int iy, int iz) const{
@@ -47,10 +59,6 @@ void CaloSimulation::SimulateShower(float x, float y, float energy){
     GX->SetParameters(1/sqrt(2*M_PI*sigma), x, sigma);
     GY->SetParameters(1/sqrt(2*M_PI*sigma), y, sigma);
 
-    // Creation of the calorimeter
-    vector<CaloCell> caldata;
-    CalorimeterData(caldata);
-
     // Initialisation : energy at the impact
     double xyz[3];
     xyz[0] = x;
@@ -65,7 +73,7 @@ void CaloSimulation::SimulateShower(float x, float y, float energy){
     int iz0 = cell_ad.layer();
     // we add the incident energy in the impact cell
     CaloCell ImpactCell = CaloCell(cell_ad,energy);
-    caldata[caldataIndex(ix0,iy0,iz0)] = ImpactCell;
+    m_caldata[caldataIndex(ix0,iy0,iz0)] = ImpactCell;
 
     // while the particle is in the calo and has enough energy
     while( iz <= izMaxShower && iz <= NbLayers ) {
@@ -76,10 +84,10 @@ void CaloSimulation::SimulateShower(float x, float y, float energy){
         for(int ix=0; ix < NbCellsInXY; ix++){
             for(int iy=0; iy < NbCellsInXY; iy++){
                 // and add the energy to the cell
-                CellAddress address = caldata[caldataIndex(ix,iy,iz)].address();
+                CellAddress address = m_caldata[caldataIndex(ix,iy,iz)].address();
                 float NewEnergy = energy_z * GX->Eval(ix*XYSize) * GY->Eval(iy*XYSize) * XYSize * XYSize;
                 CaloCell NewCell = CaloCell(address,NewEnergy);
-                caldata[caldataIndex(ix,iy,iz)] = NewCell;
+                m_caldata[caldataIndex(ix,iy,iz)] = NewCell;
             }
         }
         iz++;
@@ -88,7 +96,7 @@ void CaloSimulation::SimulateShower(float x, float y, float energy){
 ////////////////////////////////////////////////////////////////////////////////
     TH2 *hist2D = new TH2F("hist2D", "First layer", NbCellsInXY, 0, NbCellsInXY, NbCellsInXY, 0, NbCellsInXY);
     for( int i=0; i<NbCellsInXY*NbCellsInXY; i++ ){
-        hist2D->Fill(caldata[i].address().ix(), caldata[i].address().iy(), caldata[i].energy());
+        hist2D->Fill(m_caldata[i].address().ix(), m_caldata[i].address().iy(), m_caldata[i].energy());
     }
     hist2D->Draw();
 ////////////////////////////////////////////////////////////////////////////////

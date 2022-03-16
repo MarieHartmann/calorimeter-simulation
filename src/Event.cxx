@@ -22,4 +22,10 @@ void Event::build(int eventNumber)
     m_eTrue = -999.;
     m_eReco = -999.;
     m_eRecoBiais = -999.;
+
+    m_XImpact = -999.;
+    m_YImpact = -999.;
+    m_CaloSimu = CaloSimulation();
+    
+
 }

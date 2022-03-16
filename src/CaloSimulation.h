@@ -11,13 +11,21 @@
 #include <vector>
 #include <map>
 
+using namespace std;
+
 class CaloSimulation
 {
 public:
+
 	CaloSimulation();
 
+	~CaloSimulation();
+
 	// Add the calorimeter cells to the vector of cell caldata.
-	void CalorimeterData(std::vector<CaloCell>& caldata) const;
+	void CalorimeterData() const;
+
+  // Return caldata
+  vector<CaloCell> caldata() const;
 
 	// Give the index in caldata of the point.
 	int caldataIndex(int ix, int iy, int iz) const;
@@ -32,10 +40,11 @@ public:
 
 	// Print all the cells.
 	// TODO: to be implemented.
-	friend std::ostream& operator<<(std::ostream& os, const CaloSimulation& cs);
+	friend ostream& operator<<(ostream& os, const CaloSimulation& cs);
 
 private: // TODO: to be completed.
 
+   vector<CaloCell> m_caldata;
 };
 
 #endif
