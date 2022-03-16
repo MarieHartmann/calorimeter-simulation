@@ -27,6 +27,9 @@ public:
 	// TODO: to be implemented.
 	void SimulateShower(float x, float y, float energy);
 
+	// Compute the energy longitudinal evolution
+	static float EnergyEvolution(float t);
+
 	// Print all the cells.
 	// TODO: to be implemented.
 	friend std::ostream& operator<<(std::ostream& os, const CaloSimulation& cs);

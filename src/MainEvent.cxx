@@ -78,6 +78,40 @@ int main(int argc, char **argv)
     outTree.Branch("CaloRes", &h);
     outTree.Branch("CaloResBiais", &g);
 
+
+    // Test of the CellAdress class
+    CellAddress cell_ad1, cell_ad2;
+    cell_ad1 = CellAddress(1,1,1);
+    cell_ad2 = CellAddress(5,1,1);
+
+    cout << "Is address valid ? " << cell_ad1.IsValid() << endl;
+    cout << "Is address valid ? " << cell_ad2.IsValid() << endl;
+    cout << "X coordinate of the cell " << cell_ad1.ix() << endl;
+
+    // Test of the CaloCell class
+    CaloCell cell1, cell2;
+    cell1 = CaloCell(cell_ad1, 10);
+    cell2 = CaloCell(cell_ad2, 5);
+
+    cout << "Energy = " << cell1.energy() << endl;
+    cout << "Energy = " << cell2.energy() << endl;
+    cout << "Is address valid ? " << cell1.address().IsValid() << endl;
+    cout << "X coordinate of the cell " << cell1.address().ix() << endl;
+
+    // Test of the CaloGeometry class
+    double xyz[3];
+    CellAddress cell_ad3 = CellAddress();
+    xyz[0] =-1.06; //we expect Xcenter -1 and ix = -10
+    xyz[1] = 0.06; //we expect Ycenter 0.1 and iy = 1
+    xyz[2] = 0.; //we expect layers = 0
+
+    cout << "Is inside calorimeter ? " << CaloGeometry::IsInside(xyz, cell_ad3) << endl;
+    cout << "Coordinates " << cell_ad3.ix() << " "
+                           << cell_ad3.iy() << " "
+                           << cell_ad3.layer() << endl;
+    cout << "Xcenter " << CaloGeometry::xCentre(cell_ad3) << endl;
+    cout << "YCenter " << CaloGeometry::yCentre(cell_ad3) << endl;
+
     // Create a dummy event that will be build in the loop.
     Event event;
 
@@ -118,39 +152,6 @@ int main(int argc, char **argv)
     outFile.cd(); // Make sure we are in the outupt file.
     outFile.Write(); // Write all current in the current directory.
     outTree.Print();
-
-// Test of the CellAdress class
-    CellAddress cell_ad1, cell_ad2;
-    cell_ad1 = CellAddress(1,1,1);
-    cell_ad2 = CellAddress(5,1,1);
-
-    cout << "Is address valid ? " << cell_ad1.IsValid() << endl;
-    cout << "Is address valid ? " << cell_ad2.IsValid() << endl;
-    cout << "X coordinate of the cell " << cell_ad1.ix() << endl;
-
-// Test of the CaloCell class
-    CaloCell cell1, cell2;
-    cell1 = CaloCell(cell_ad1, 10);
-    cell2 = CaloCell(cell_ad2, 5);
-
-    cout << "Energy = " << cell1.energy() << endl;
-    cout << "Energy = " << cell2.energy() << endl;
-    cout << "Is address valid ? " << cell1.address().IsValid() << endl;
-    cout << "X coordinate of the cell " << cell1.address().ix() << endl;
-
-// Test of the CaloGeometry class
-    double xyz[3];
-    CellAddress cell_ad3 = CellAddress();
-    xyz[0] =-1.06; //we expect Xcenter -1 and ix = -10
-    xyz[1] = 0.06; //we expect Ycenter 0.1 and iy = 1
-    xyz[2] = 0.; //we expect layers = 0
-
-    cout << "Is inside calorimeter ? " << CaloGeometry::IsInside(xyz, cell_ad3) << endl;
-    cout << "Coordinates " << cell_ad3.ix() << " "
-                           << cell_ad3.iy() << " "
-                           << cell_ad3.layer() << endl;
-    cout << "Xcenter " << CaloGeometry::xCentre(cell_ad3) << endl;
-    cout << "YCenter " << CaloGeometry::yCentre(cell_ad3) << endl;
 
 
     outFile.Close();

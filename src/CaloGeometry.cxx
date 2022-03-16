@@ -18,7 +18,7 @@ bool CaloGeometry::IsInside(double xyz[3], CellAddress& cellAddress){
            // We take the origin of the indices of the cell on the bottom left
            cellAddress = CellAddress(int( x / XYSize ),
                                      int( y / XYSize ),
-                                     int( z / ZSize );
+                                     int( z / ZSize ));
            return true;
        }
     return false;
