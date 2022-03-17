@@ -30,6 +30,17 @@ void CaloSimulation::CalorimeterData() {
      }
 }
 
+void CaloSimulation::ClearCalorimeter(){
+    for (int iz=0; iz < NbLayers; iz++){
+        for (int iy=0; iy <NbCellsInXY; iy++){
+            for (int ix=0; ix <NbCellsInXY; ix++) {
+                int index = caldataIndex(ix,iy,iz);
+                m_caldata[index].energy()=0;
+            }
+        }
+    }
+}
+
 vector<CaloCell> CaloSimulation::caldata() const{
     return m_caldata;
 }

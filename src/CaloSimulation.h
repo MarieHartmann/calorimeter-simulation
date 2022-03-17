@@ -24,6 +24,9 @@ public:
 	// Add the calorimeter cells to the vector of cell caldata.
 	void CalorimeterData();
 
+	// Clean the calorimeter (all energies set to 0)
+	void ClearCalorimeter();
+
   // Return caldata
   vector<CaloCell> caldata() const;
 
