@@ -35,13 +35,14 @@
 #include "CaloCell.h"
 #include "CaloGeometry.h"
 #include "CaloConstants.h"
+#include "CaloSimulation.h"
 
 using namespace std;
 using namespace CalConst;
 
 void reconstruct(Event& event);
-void simulate(Event& event);
-void ana_simu(const Event& event);
+void simulate(Event& event, CaloSimulation& Calorimeter);
+void ana_simu(const Event& event, CaloSimulation& Calorimeter);
 
 //______________________________________________________________________________
 int main(int argc, char **argv)
@@ -50,6 +51,10 @@ int main(int argc, char **argv)
     int nEventsMax = 400;
     // If command line argument provided, take it as max number of events.
     if (argc > 1) nEventsMax = atoi(argv[1]);
+
+    // Creation of the calorimeter
+    CaloSimulation Calorimeter;
+    Calorimeter.CalorimeterData();
 
     // Create a new ROOT binary machine independent file.
     // Note that this file may contain any kind of ROOT objects, histograms,
@@ -69,6 +74,8 @@ int main(int argc, char **argv)
     float eTrue;
     float eReco;
     float eRecoBiais;
+
+
     TH1F* h = new TH1F("h", "Calorimeter resolution", 100, -3., 3.);
     TH1F* g = new TH1F("g", "Calorimeter resolution with biais", 100, -5., 5.);
     outTree.Branch("eventNumber", &eventNumber);
@@ -77,6 +84,7 @@ int main(int argc, char **argv)
     outTree.Branch("eRecoBiais", &eRecoBiais);
     outTree.Branch("CaloRes", &h);
     outTree.Branch("CaloResBiais", &g);
+    //outTree.Branch("Calorimeter", &Calorimeter);
 
 
     // Test of the CellAdress class
@@ -126,35 +134,29 @@ int main(int argc, char **argv)
         event.build(eventNumber);
 
         // simulation
-        simulate(event);
-        ana_simu(event);
+        simulate(event, Calorimeter);
+        ana_simu(event, Calorimeter);
 
         // reconstruction
         reconstruct(event);
 
-        // Prepare to fill the output tree.
-        eTrue = event.eTrue();
-        eReco = event.eReco();
-        eRecoBiais = event.eRecoBiais();
-        //histogram describing the calorimeter resolution
-        //it matches the distribution used in reconstruct.cxx
-        //flat, between -0.5 and 0.5
-        h->Fill(eReco-eTrue);
-        h->Fit("gaus");
-        //histogram discribing the biaised calorimeter resolution
-        //We find the 0.1GeV biais back
-        g->Fill(eRecoBiais-eTrue);
-        g->Fit("gaus");
-
         outTree.Fill(); // Fill the tree.
     } // End event loop
 
+    cout << 0. << endl;
+
     outFile.cd(); // Make sure we are in the outupt file.
+
+    cout << 1. << endl;
     outFile.Write(); // Write all current in the current directory.
+    cout << 2. << endl;
     outTree.Print();
+    cout << 3. << endl;
 
 
     outFile.Close();
+
+    cout << 4. << endl;
 
 
 

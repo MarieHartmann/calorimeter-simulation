@@ -23,7 +23,7 @@ namespace CalConst {
 	// Parameters of shower development
 	static const float MR = 0.05; // Moliere Radius in meters
 	static const float X0 = 0.01; // Radiation Length in meters
-	static const float a = 4;
+	static const float a = 4.;
 	static const float b = 0.5;
 	static const float E0 = 50; // Energy in GeV
 }

@@ -22,7 +22,7 @@ public:
 	~CaloSimulation();
 
 	// Add the calorimeter cells to the vector of cell caldata.
-	void CalorimeterData() const;
+	void CalorimeterData();
 
   // Return caldata
   vector<CaloCell> caldata() const;
@@ -34,9 +34,6 @@ public:
 	// of the electron at the front end of the calorimeter.
 	// TODO: to be implemented.
 	void SimulateShower(float x, float y, float energy);
-
-	// Compute the energy longitudinal evolution
-	static float EnergyEvolution(float t);
 
 	// Print all the cells.
 	// TODO: to be implemented.

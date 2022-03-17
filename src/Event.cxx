@@ -25,7 +25,7 @@ void Event::build(int eventNumber)
 
     m_XImpact = -999.;
     m_YImpact = -999.;
-    m_CaloSimu = CaloSimulation();
-    
+    //m_CaloSimu = CaloSimulation();
+
 
 }

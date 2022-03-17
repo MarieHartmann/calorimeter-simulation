@@ -4,7 +4,6 @@
 #include "CaloCell.h"
 #include "CellAddress.h"
 #include "TF1.h"
-#include "TH2.h"
 #include <vector>
 #include <math.h>
 
@@ -16,11 +15,11 @@ CaloSimulation::~CaloSimulation(){
 
 }
 
-void CaloSimulation(){
+CaloSimulation::CaloSimulation(){
 
 }
 
-void CaloSimulation::CalorimeterData() const{
+void CaloSimulation::CalorimeterData() {
     for (int iz=0; iz < NbLayers; iz++){
         for (int iy=0; iy <NbCellsInXY; iy++){
             for (int ix=0; ix <NbCellsInXY; ix++) {
@@ -40,19 +39,16 @@ int CaloSimulation::caldataIndex(int ix, int iy, int iz) const{
     return iz*NbCellsInXY*NbCellsInXY + iy*NbCellsInXY + ix;
 }
 
-float CaloSimulation::EnergyEvolution(float t) {
-  return b * pow((b*t),(a-1)) * exp(- b*t) / tgamma(a);
-}
-
 void CaloSimulation::SimulateShower(float x, float y, float energy){
     // Development of the shower
     float zMaxShower = (a - 1) * X0 /b;
     int izMaxShower = int( zMaxShower / ZSize );
     float sigma = MR; // sigma of the gaussian
-    int iz = 0;
+    int iz = 1;
 
     // Function for longitudinal development
-    TF1 *F = new TF1("F", "energy * CaloSimulation::EnergyEvolution(t)", 0, ZMax/X0);
+    TF1 *F = new TF1("F", " [1] * pow(([1]*x),([0]-1)) * exp(- [1]*x) / tgamma([0])");
+    F->SetParameters(a,b);
     // Functions for lateral development
     TF1 *GX = new TF1("GX", "gaus(0)", XYMin, XYMax);
     TF1 *GY = new TF1("GY", "gaus(0)", XYMin, XYMax);
@@ -77,27 +73,26 @@ void CaloSimulation::SimulateShower(float x, float y, float energy){
 
     // while the particle is in the calo and has enough energy
     while( iz <= izMaxShower && iz <= NbLayers ) {
-        // compute the energy difference between 2 layers
+        // compute the energy loss at the considered layer
         float DeltaE = F->Integral(0, iz*NbLayers/X0);
-        float energy_z = energy - DeltaE;
+        // and remove it from the initial energy
+        float energy_z = energy - DeltaE * energy;
         // loop over all cells in the layer
         for(int ix=0; ix < NbCellsInXY; ix++){
             for(int iy=0; iy < NbCellsInXY; iy++){
-                // and add the energy to the cell
+                // compute the energy in the cell
                 CellAddress address = m_caldata[caldataIndex(ix,iy,iz)].address();
-                float NewEnergy = energy_z * GX->Eval(ix*XYSize) * GY->Eval(iy*XYSize) * XYSize * XYSize;
+                double DeltaGX = GX->Integral(ix*XYSize, (ix+1)*XYSize);
+                double DeltaGY = GY->Integral(iy*XYSize, (iy+1)*XYSize);
+                float NewEnergy = energy_z * DeltaGX * DeltaGY;
+                // and add it to the calorimeter
                 CaloCell NewCell = CaloCell(address,NewEnergy);
                 m_caldata[caldataIndex(ix,iy,iz)] = NewCell;
             }
         }
-        iz++;
+        iz = iz +1;
     }
-
-////////////////////////////////////////////////////////////////////////////////
-    TH2 *hist2D = new TH2F("hist2D", "First layer", NbCellsInXY, 0, NbCellsInXY, NbCellsInXY, 0, NbCellsInXY);
-    for( int i=0; i<NbCellsInXY*NbCellsInXY; i++ ){
-        hist2D->Fill(m_caldata[i].address().ix(), m_caldata[i].address().iy(), m_caldata[i].energy());
-    }
-    hist2D->Draw();
-////////////////////////////////////////////////////////////////////////////////
+    delete GX;
+    delete GY;
+    delete F;
 }
