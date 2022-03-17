@@ -28,6 +28,7 @@
 #include "TRandom3.h"
 #include "TTree.h"
 #include "TH1F.h"
+#include "TH2.h"
 #include "TStopwatch.h"
 
 #include "Event.h"
@@ -75,15 +76,21 @@ int main(int argc, char **argv)
     float eReco;
     float eRecoBiais;
 
-
+    // make the histograms
     TH1F* h = new TH1F("h", "Calorimeter resolution", 100, -3., 3.);
     TH1F* g = new TH1F("g", "Calorimeter resolution with biais", 100, -5., 5.);
+    TH2* hist2D = new TH2F("hist2D", "First layer", NbCellsInXY, 0, NbCellsInXY, NbCellsInXY, 0, NbCellsInXY);
+    for( int i=0; i<NbCellsInXY*NbCellsInXY; i++ ){
+        vector<CaloCell> CaloElements = Calorimeter.caldata();
+        hist2D->Fill(CaloElements[i].address().ix(), CaloElements[i].address().iy(), CaloElements[i].energy());
+      }
     outTree.Branch("eventNumber", &eventNumber);
     outTree.Branch("eTrue", &eTrue);
     outTree.Branch("eReco", &eReco);
     outTree.Branch("eRecoBiais", &eRecoBiais);
     outTree.Branch("CaloRes", &h);
     outTree.Branch("CaloResBiais", &g);
+    outTree.Branch("Transverse energy representation", &hist2D);
     //outTree.Branch("Calorimeter", &Calorimeter);
 
 
@@ -140,23 +147,29 @@ int main(int argc, char **argv)
         // reconstruction
         reconstruct(event);
 
+        eTrue = event.eTrue();
+        eReco = event.eReco();
+        eRecoBiais = event.eRecoBiais();
+
+        //histogram describing the calorimeter resolution
+        //it matches the distribution used in reconstruct.cxx
+        //flat, between -0.5 and 0.5
+        h->Fill(eReco-eTrue);
+        h->Fit("gaus");
+        //histogram discribing the biaised calorimeter resolution
+        //We find the 0.1GeV biais back
+        g->Fill(eRecoBiais-eTrue);
+        g->Fit("gaus"); // Prepare to fill the output tree.
+
         outTree.Fill(); // Fill the tree.
+
     } // End event loop
 
-    cout << 0. << endl;
-
     outFile.cd(); // Make sure we are in the outupt file.
-
-    cout << 1. << endl;
     outFile.Write(); // Write all current in the current directory.
-    cout << 2. << endl;
     outTree.Print();
-    cout << 3. << endl;
-
-
     outFile.Close();
 
-    cout << 4. << endl;
 
 
 

@@ -7,7 +7,6 @@
 #include <vector>
 #include <math.h>
 
-
 using namespace std;
 using namespace CalConst;
 
