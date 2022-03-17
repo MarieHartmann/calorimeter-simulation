@@ -5,16 +5,13 @@
 
 using namespace CalConst;
 
-void simulate(Event& event, CaloSimulation& Calorimeter)
+void simulate(Event& event, CaloSimulation& Calorimeter, float XImpact, float YImpact)
 {
     // simulate the event
     event.seteTrue(50.); // fixed true energy
 
-    // draw randomly the impact point
-    float XImpact = gRandom->Uniform(XYMax - XYMin) + XYMin;
-    float YImpact = gRandom->Uniform(XYMax - XYMin) + XYMin;
-
     // simulate the energy deposit
     Calorimeter.SimulateShower(XImpact, YImpact, event.eTrue());
+
 
 }

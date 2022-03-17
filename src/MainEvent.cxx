@@ -42,14 +42,14 @@ using namespace std;
 using namespace CalConst;
 
 void reconstruct(Event& event);
-void simulate(Event& event, CaloSimulation& Calorimeter);
+void simulate(Event& event, CaloSimulation& Calorimeter, float XImpact, float YImpact);
 void ana_simu(const Event& event, CaloSimulation& Calorimeter);
 
 //______________________________________________________________________________
 int main(int argc, char **argv)
 {
     // By default create 400 events.
-    int nEventsMax = 400;
+    int nEventsMax = 1;
     // If command line argument provided, take it as max number of events.
     if (argc > 1) nEventsMax = atoi(argv[1]);
 
@@ -75,25 +75,24 @@ int main(int argc, char **argv)
     float eTrue;
     float eReco;
     float eRecoBiais;
+    float XImpact;
+    float YImpact;
 
     // make the histograms
     TH1F* h = new TH1F("h", "Calorimeter resolution", 100, -3., 3.);
     TH1F* g = new TH1F("g", "Calorimeter resolution with biais", 100, -5., 5.);
     TH2* hist2D = new TH2F("hist2D", "First layer", NbCellsInXY, 0, NbCellsInXY, NbCellsInXY, 0, NbCellsInXY);
-    for( int i=0; i<NbCellsInXY*NbCellsInXY; i++ ){
-        vector<CaloCell> CaloElements = Calorimeter.caldata();
-        hist2D->Fill(CaloElements[i].address().ix(), CaloElements[i].address().iy(), CaloElements[i].energy());
-      }
+
+    outTree.Branch("Transverse energy representation ", &hist2D);
     outTree.Branch("eventNumber", &eventNumber);
     outTree.Branch("eTrue", &eTrue);
     outTree.Branch("eReco", &eReco);
     outTree.Branch("eRecoBiais", &eRecoBiais);
     outTree.Branch("CaloRes", &h);
     outTree.Branch("CaloResBiais", &g);
-    outTree.Branch("Transverse energy representation", &hist2D);
-    //outTree.Branch("Calorimeter", &Calorimeter);
 
 
+//////////////////////////////////////////////////////
     // Test of the CellAdress class
     CellAddress cell_ad1, cell_ad2;
     cell_ad1 = CellAddress(1,1,1);
@@ -126,6 +125,7 @@ int main(int argc, char **argv)
                            << cell_ad3.layer() << endl;
     cout << "Xcenter " << CaloGeometry::xCentre(cell_ad3) << endl;
     cout << "YCenter " << CaloGeometry::yCentre(cell_ad3) << endl;
+///////////////////////////////////////////////////////
 
     // Create a dummy event that will be build in the loop.
     Event event;
@@ -140,8 +140,13 @@ int main(int argc, char **argv)
         // initialize event
         event.build(eventNumber);
 
+        // draw randomly the impact point
+
+        XImpact = gRandom->Uniform(XYMax - XYMin) + XYMin;
+        YImpact = gRandom->Uniform(XYMax - XYMin) + XYMin;
+
         // simulation
-        simulate(event, Calorimeter);
+        simulate(event, Calorimeter, XImpact, YImpact);
         ana_simu(event, Calorimeter);
 
         // reconstruction
@@ -161,7 +166,26 @@ int main(int argc, char **argv)
         g->Fill(eRecoBiais-eTrue);
         g->Fit("gaus"); // Prepare to fill the output tree.
 
+        for (int iz=0; iz < NbLayers; iz++){
+            for (int iy=0; iy < NbCellsInXY; iy++){
+                for (int ix=0; ix < NbCellsInXY; ix++) {
+                    int i = Calorimeter.caldataIndex(ix, iy,iz);
+                    vector<CaloCell> CaloElements = Calorimeter.caldata();
+                    hist2D->SetBinContent(CaloElements[i].address().ix()+1, CaloElements[i].address().iy()+1, CaloElements[i].energy());
+            }
+          }
+        }
+
+        cout << "bbbbbbb" << endl;
+        cout << XImpact << endl;
+        cout << YImpact << endl;
+
+        //hist2D->Fill(Impact[0], Impact[1])
+
         outTree.Fill(); // Fill the tree.
+
+        Calorimeter.ClearCalorimeter();
+
 
     } // End event loop
 

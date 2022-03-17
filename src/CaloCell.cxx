@@ -20,3 +20,8 @@ float CaloCell::energy() const {
 CellAddress CaloCell::address() const{
     return(m_address);
 }
+
+// Setters.
+void CaloCell::setEnergy(float energy) {
+    m_energy = energy;
+}

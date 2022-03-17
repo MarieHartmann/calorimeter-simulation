@@ -22,6 +22,9 @@ public:
 	float energy() const;
 	CellAddress address() const;
 
+	//Setters.
+	void setEnergy(float energy);
+
 	// "Print" function.
 	friend std::ostream& operator<<(std::ostream& os, const CaloCell& y)
 	{
