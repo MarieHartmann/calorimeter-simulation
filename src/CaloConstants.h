@@ -14,7 +14,7 @@ namespace CalConst {
 	static const float XYMax = 2.;
 
 	static const int NbCellsInXY = 40;
-	static const int NbLayers = 1;
+	static const int NbLayers = 10;
 
 	// Cell size in x-y.
 	static const float XYSize = (XYMax - XYMin) / NbCellsInXY;
@@ -25,7 +25,7 @@ namespace CalConst {
 	static const float X0 = 0.01; // Radiation Length in meters
 	static const float a = 4.;
 	static const float b = 0.5;
-	static const float E0 = 50; // Energy in GeV
+	//static const float E0 = 100; // Energy in GeV
 }
 
 #endif

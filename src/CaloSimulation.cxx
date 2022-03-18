@@ -52,10 +52,7 @@ int CaloSimulation::caldataIndex(int ix, int iy, int iz) const{
 
 void CaloSimulation::SimulateShower(float x, float y, float energy){
     // Development of the shower
-    float zMaxShower = (a - 1) * X0 /b;
-    int izMaxShower = int( zMaxShower / ZSize );
     float sigma = MR; // sigma of the gaussian
-    int iz = 0;
     float ParticleEnergy = energy;
     float EnergyDeposited = 0.;
 
@@ -69,11 +66,16 @@ void CaloSimulation::SimulateShower(float x, float y, float energy){
     GY->SetParameters(1/(sqrt(2*M_PI)*sigma), y, sigma);
 
 
-    // while the particle is in the calo and has enough energy
-    while( iz <= izMaxShower && iz <= NbLayers ) {
+
+    for( int iz = 0; iz < NbLayers; iz++ ) {
         // compute the energy loss at the considered layer
-        EnergyDeposited = F->Integral(iz*ZSize/X0, (iz+1)*ZSize/X0)*ParticleEnergy;
+        EnergyDeposited = F->Integral(iz*ZSize/X0, (iz+1)*ZSize/X0, 1e-12)*energy;
         ParticleEnergy = ParticleEnergy - EnergyDeposited;
+
+        // if the particle has not enough energy, we stop the shower
+        if(ParticleEnergy < 0 ){
+          break;
+        }
 
         // loop over all cells in the layer
         for(int ix = 0; ix < NbCellsInXY; ix++){
@@ -88,7 +90,6 @@ void CaloSimulation::SimulateShower(float x, float y, float energy){
                 m_caldata[caldataIndex(ix,iy,iz)] = NewCell;
             }
         }
-        iz = iz +1;
     }
 
     delete GX;
