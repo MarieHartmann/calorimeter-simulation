@@ -42,7 +42,7 @@ using namespace std;
 using namespace CalConst;
 
 void reconstruct(Event& event);
-void simulate(Event& event, CaloSimulation& Calorimeter, float XImpact, float YImpact);
+void simulate(Event& event, CaloSimulation& Calorimeter, float xTrue, float yTrue);
 void ana_simu(const Event& event, CaloSimulation& Calorimeter);
 
 //______________________________________________________________________________
@@ -72,11 +72,9 @@ int main(int argc, char **argv)
     // variables in the output tree.
     TTree outTree("eventTree", "Calo sim root tree");
     int eventNumber;
-    float eTrue;
-    float eReco;
-    float eRecoBiais;
-    float XImpact;
-    float YImpact;
+    float eTrue, eReco, eRecoBiais;
+    float xReco, yReco;
+    float xTrue, yTrue;
 
     // make the histograms
     TH1F* h = new TH1F("h", "Calorimeter resolution", 100, -3., 3.);
@@ -92,6 +90,11 @@ int main(int argc, char **argv)
     outTree.Branch("eRecoBiais", &eRecoBiais);
     outTree.Branch("CaloRes", &h);
     outTree.Branch("CaloResBiais", &g);
+    outTree.Branch("xReco", &xReco);
+    outTree.Branch("yReco", &yReco);
+    outTree.Branch("xTrue", &xTrue);
+    outTree.Branch("yTrue", &yTrue);
+
 
 
 //////////////////////////////////////////////////////
@@ -144,15 +147,16 @@ int main(int argc, char **argv)
         // initialize event
         event.build(eventNumber);
 
-        // draw randomly the impact point
+        // draw randomly the impact point in the calorimeter
+        //xTrue = gRandom->Uniform(XYMax - XYMin) + XYMin;
+        //yTrue = gRandom->Uniform(XYMax - XYMin) + XYMin;
 
-        //XImpact = gRandom->Uniform(XYMax - XYMin) + XYMin;
-        //YImpact = gRandom->Uniform(XYMax - XYMin) + XYMin;
+        // draw randomly the impact point in a particular cell
+        xTrue = gRandom->Uniform(0.1) - 0.1;
+        yTrue = gRandom->Uniform(0.1) - 0.1;
 
-        XImpact = 0.25;
-        YImpact = 0.3;
         // simulation
-        simulate(event, Calorimeter, XImpact, YImpact);
+        simulate(event, Calorimeter, xTrue, yTrue);
         ana_simu(event, Calorimeter);
 
         // reconstruction
@@ -174,20 +178,30 @@ int main(int argc, char **argv)
 
         int LayerToPlot = 1;
 
+        float MaxEnergy = 0.;
+        int iMaxEnergy = 0;
+        vector<CaloCell> CaloElements = Calorimeter.caldata();
+
         for (int iz=0; iz < NbLayers; iz++){
             for (int iy=0; iy < NbCellsInXY; iy++){
                 for (int ix=0; ix < NbCellsInXY; ix++) {
                     int i = Calorimeter.caldataIndex(ix, iy,iz);
-                    vector<CaloCell> CaloElements = Calorimeter.caldata();
                     hist1D->Fill(iz,  CaloElements[i].energy());
                     if (iz==LayerToPlot){
                       hist2D->SetBinContent(CaloElements[i].address().ix()+1, CaloElements[i].address().iy()+1, CaloElements[i].energy());
+                    }
+                    if (iz==0) {
+                        if (CaloElements[i].energy() > MaxEnergy) {
+                            MaxEnergy = CaloElements[i].energy();
+                            iMaxEnergy = i;
+                        }
                     }
             }
           }
         }
 
-        //hist2D->Fill(Impact[0], Impact[1])
+        xReco = CaloElements[iMaxEnergy].address().ix() * XYSize+XYMin;
+        yReco = CaloElements[iMaxEnergy].address().iy() * XYSize+XYMin;
 
         outTree.Fill(); // Fill the tree.
 

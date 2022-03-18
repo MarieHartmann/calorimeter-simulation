@@ -20,5 +20,4 @@ void simulate(Event& event, CaloSimulation& Calorimeter, float XImpact, float YI
     // simulate the energy deposit
     Calorimeter.SimulateShower(XImpact, YImpact, event.eTrue());
 
-
 }
