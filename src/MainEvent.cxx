@@ -76,14 +76,19 @@ int main(int argc, char **argv)
     float xReco, yReco;
     float xTrue, yTrue;
 
-    // make the histograms
+    // Initialization of the histograms (they will be accesible from the tree)
     TH1F* h = new TH1F("h", "Calorimeter resolution", 100, -3., 3.);
     TH1F* g = new TH1F("g", "Calorimeter resolution with biais", 100, -5., 5.);
-    TH1* hist1D = new TH1F("hist1D", "Energy deposited per layers", NbLayers, 0., NbLayers);
     TH2* hist2D = new TH2F("hist2D", "Last layer", NbCellsInXY, 0, NbCellsInXY, NbCellsInXY, 0, NbCellsInXY);
+    TH1* hist1DEnergyZ = new TH1F("hist1DEnergyZ", "Energy deposited per layers", NbLayers, 0., NbLayers);
+    TH1* hist1DEnergyX = new TH1F("hist1DEnergyX", "Energy projection on X", NbCellsInXY, 0, NbCellsInXY);
+    TH1* hist1DEnergyY = new TH1F("hist1DEnergyY", "Energy projection on Y", NbCellsInXY, 0, NbCellsInXY);
 
+    // Create TreeBranches
     outTree.Branch("Transverse energy representation ", &hist2D);
-    outTree.Branch("Longitudinal energy representation", &hist1D);
+    outTree.Branch("Energy projection on X", &hist1DEnergyX);
+    outTree.Branch("Energy projection on Y", &hist1DEnergyY);
+    outTree.Branch("Longitudinal energy representation", &hist1DEnergyZ);
     outTree.Branch("eventNumber", &eventNumber);
     outTree.Branch("eTrue", &eTrue);
     outTree.Branch("eReco", &eReco);
@@ -152,8 +157,8 @@ int main(int argc, char **argv)
         //yTrue = gRandom->Uniform(XYMax - XYMin) + XYMin;
 
         // draw randomly the impact point in a particular cell
-        xTrue = gRandom->Uniform(0.1) - 0.1;
-        yTrue = gRandom->Uniform(0.1) - 0.1;
+        xTrue = gRandom -> Uniform(0.1) - 0.1;
+        yTrue = gRandom -> Uniform(0.1) - 0.1;
 
         // simulation
         simulate(event, Calorimeter, xTrue, yTrue);
@@ -176,28 +181,35 @@ int main(int argc, char **argv)
         g->Fill(eRecoBiais-eTrue);
         g->Fit("gaus"); // Prepare to fill the output tree.
 
-        int LayerToPlot = 1;
-
-        float MaxEnergy = 0.;
+        // Fill the histograms
+        int LayerToPlot = 1;  //choose the layer for the 2D plot
+        float MaxEnergy = 0.; //parameters used to determine the impact cell
         int iMaxEnergy = 0;
         vector<CaloCell> CaloElements = Calorimeter.caldata();
 
+        //loop over all the cells
         for (int iz=0; iz < NbLayers; iz++){
             for (int iy=0; iy < NbCellsInXY; iy++){
                 for (int ix=0; ix < NbCellsInXY; ix++) {
-                    int i = Calorimeter.caldataIndex(ix, iy,iz);
-                    hist1D->Fill(iz,  CaloElements[i].energy());
+                    int i = Calorimeter.caldataIndex(ix, iy, iz); // get the indice of the cell in the vector
+                    float EnergyCell = CaloElements[i].energy();
+
+                    hist1DEnergyZ -> Fill(iz, EnergyCell);
+                    hist1DEnergyX -> Fill(ix, EnergyCell);
+                    hist1DEnergyY -> Fill(iy, EnergyCell);
+
                     if (iz==LayerToPlot){
-                      hist2D->SetBinContent(CaloElements[i].address().ix()+1, CaloElements[i].address().iy()+1, CaloElements[i].energy());
+                      hist2D->SetBinContent(CaloElements[i].address().ix()+1, CaloElements[i].address().iy()+1, EnergyCell);
                     }
-                    if (iz==0) {
-                        if (CaloElements[i].energy() > MaxEnergy) {
-                            MaxEnergy = CaloElements[i].energy();
+                    //we only look at the first layer to determine the impact cell
+                    if (iz==0){
+                        if (EnergyCell > MaxEnergy){
+                            MaxEnergy = EnergyCell;
                             iMaxEnergy = i;
                         }
                     }
+                }
             }
-          }
         }
 
         xReco = CaloElements[iMaxEnergy].address().ix() * XYSize+XYMin;
