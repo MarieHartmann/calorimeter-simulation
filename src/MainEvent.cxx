@@ -29,6 +29,7 @@
 #include "TTree.h"
 #include "TH1F.h"
 #include "TH2.h"
+#include "TGraph.h"
 #include "TStopwatch.h"
 
 #include "Event.h"
@@ -76,6 +77,7 @@ int main(int argc, char **argv)
     float xReco, yReco;
     float xTrue, yTrue;
 
+
     // Initialization of the histograms (they will be accesible from the tree)
     TH1F* h = new TH1F("h", "Calorimeter resolution", 100, -3., 3.);
     TH1F* g = new TH1F("g", "Calorimeter resolution with biais", 100, -5., 5.);
@@ -83,6 +85,7 @@ int main(int argc, char **argv)
     TH1* hist1DEnergyZ = new TH1F("hist1DEnergyZ", "Energy deposited per layers", NbLayers, 0., NbLayers);
     TH1* hist1DEnergyX = new TH1F("hist1DEnergyX", "Energy projection on X", NbCellsInXY, 0, NbCellsInXY);
     TH1* hist1DEnergyY = new TH1F("hist1DEnergyY", "Energy projection on Y", NbCellsInXY, 0, NbCellsInXY);
+    TGraph* sShape = new TGraph(nEventsMax);
 
     // Create TreeBranches
     outTree.Branch("Transverse energy representation ", &hist2D);
@@ -101,12 +104,11 @@ int main(int argc, char **argv)
     outTree.Branch("yTrue", &yTrue);
 
 
-
 //////////////////////////////////////////////////////
     // Test of the CellAdress class
     CellAddress cell_ad1, cell_ad2;
-    cell_ad1 = CellAddress(1,1,1);
-    cell_ad2 = CellAddress(5,1,1);
+    cell_ad1 = CellAddress(1, 1, 1);
+    cell_ad2 = CellAddress(5, 1, 1);
 
     cout << "Is address valid ? " << cell_ad1.IsValid() << endl;
     cout << "Is address valid ? " << cell_ad2.IsValid() << endl;
@@ -125,7 +127,7 @@ int main(int argc, char **argv)
     // Test of the CaloGeometry class
     double xyz[3];
     CellAddress cell_ad3 = CellAddress();
-    xyz[0] =-1.06; //we expect Xcenter -1 and ix = -10
+    xyz[0] = -1.06; //we expect Xcenter -1 and ix = -10
     xyz[1] = 0.06; //we expect Ycenter 0.1 and iy = 1
     xyz[2] = 0.; //we expect layers = 0
 
@@ -174,23 +176,25 @@ int main(int argc, char **argv)
         //histogram describing the calorimeter resolution
         //it matches the distribution used in reconstruct.cxx
         //flat, between -0.5 and 0.5
-        h->Fill(eReco-eTrue);
-        h->Fit("gaus");
+        h -> Fill(eReco-eTrue);
+        h -> Fit("gaus");
         //histogram discribing the biaised calorimeter resolution
         //We find the 0.1GeV biais back
-        g->Fill(eRecoBiais-eTrue);
-        g->Fit("gaus"); // Prepare to fill the output tree.
+        g -> Fill(eRecoBiais-eTrue);
+        g -> Fit("gaus"); // Prepare to fill the output tree.
 
         // Fill the histograms
         int LayerToPlot = 1;  //choose the layer for the 2D plot
-        float MaxEnergy = 0.; //parameters used to determine the impact cell
-        int iMaxEnergy = 0;
         vector<CaloCell> CaloElements = Calorimeter.caldata();
+        //for the computation of the impact coordinates
+        float CenterX = 0.;
+        float CenterY = 0.;
+        float EnergyTot = 0.;
 
         //loop over all the cells
-        for (int iz=0; iz < NbLayers; iz++){
-            for (int iy=0; iy < NbCellsInXY; iy++){
-                for (int ix=0; ix < NbCellsInXY; ix++) {
+        for (int iz = 0; iz < NbLayers; iz++){
+            for (int iy = 0; iy < NbCellsInXY; iy++){
+                for (int ix = 0; ix < NbCellsInXY; ix++) {
                     int i = Calorimeter.caldataIndex(ix, iy, iz); // get the indice of the cell in the vector
                     float EnergyCell = CaloElements[i].energy();
 
@@ -198,22 +202,24 @@ int main(int argc, char **argv)
                     hist1DEnergyX -> Fill(ix, EnergyCell);
                     hist1DEnergyY -> Fill(iy, EnergyCell);
 
-                    if (iz==LayerToPlot){
-                      hist2D->SetBinContent(CaloElements[i].address().ix()+1, CaloElements[i].address().iy()+1, EnergyCell);
+                    if (iz == LayerToPlot){
+                      hist2D->SetBinContent(CaloElements[i].address().ix() + 1, CaloElements[i].address().iy() + 1, EnergyCell);
                     }
-                    //we only look at the first layer to determine the impact cell
-                    if (iz==0){
-                        if (EnergyCell > MaxEnergy){
-                            MaxEnergy = EnergyCell;
-                            iMaxEnergy = i;
-                        }
-                    }
+                    //"barycenter" of energy for each layer (will be divided by the total energy at the end)
+                    CenterX = CenterX + ((CaloElements[i].address().ix()+0.5)*XYSize+XYMin)*EnergyCell;
+                    CenterY = CenterY + ((CaloElements[i].address().iy()+0.5)*XYSize+XYMin)*EnergyCell;
+
+                    EnergyTot = EnergyTot + EnergyCell;
                 }
             }
         }
 
-        xReco = CaloElements[iMaxEnergy].address().ix() * XYSize+XYMin;
-        yReco = CaloElements[iMaxEnergy].address().iy() * XYSize+XYMin;
+        event.seteReco(EnergyTot);
+
+        xReco = CenterX/EnergyTot;
+        yReco = CenterY/EnergyTot;
+
+        sShape->SetPoint(eventNumber, xReco, xReco-xTrue);
 
         outTree.Fill(); // Fill the tree.
 
@@ -224,11 +230,9 @@ int main(int argc, char **argv)
 
     outFile.cd(); // Make sure we are in the outupt file.
     outFile.Write(); // Write all current in the current directory.
+    sShape->Write();
     outTree.Print();
     outFile.Close();
-
-
-
 
     return 0;
 }

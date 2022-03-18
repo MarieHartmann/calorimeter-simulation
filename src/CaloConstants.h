@@ -20,12 +20,17 @@ namespace CalConst {
 	static const float XYSize = (XYMax - XYMin) / NbCellsInXY;
 	static const float ZSize = (ZMax - ZMin) / NbLayers;
 
-	// Parameters of shower development
+	// Parameters of shower development (electromagnetic)
 	static const float MR = 0.05; // Moliere Radius in meters
 	static const float X0 = 0.01; // Radiation Length in meters
 	static const float a = 4.;
 	static const float b = 0.5;
-	//static const float E0 = 100; // Energy in GeV
+	
+	// Parameters of shower development (hadronic)
+	static const float MRHad = 0.1; // Moliere Radius in meters
+	static const float L = 0.1; // Radiation Length in meters
+	static const float aHad = 2.;
+	static const float bHad = 1.;
 }
 
 #endif

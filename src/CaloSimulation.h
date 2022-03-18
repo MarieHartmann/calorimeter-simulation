@@ -38,11 +38,13 @@ public:
 	// TODO: to be implemented.
 	void SimulateShower(float x, float y, float energy);
 
+	//Simulate a hadronic shower
+	void SimulateHadShower(float x, float y, float energy, float f);
+
 	// Print all the cells.
-	// TODO: to be implemented.
 	friend ostream& operator<<(ostream& os, const CaloSimulation& cs);
 
-private: // TODO: to be completed.
+private:
 
    vector<CaloCell> m_caldata;
 };

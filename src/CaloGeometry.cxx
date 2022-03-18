@@ -27,9 +27,9 @@ bool CaloGeometry::IsInside(double xyz[3], CellAddress& cellAddress){
 // Give the position of the cell center.
 double CaloGeometry::xCentre(const CellAddress& cellAddress){
     int ix = cellAddress.ix();
-    return ix*XYSize+XYMin;
+    return (ix+0.5)*XYSize+XYMin;
 }
 double CaloGeometry::yCentre(const CellAddress& cellAddress){
     int iy = cellAddress.iy();
-    return iy*XYSize+XYMin;
+    return (iy+0.5)*XYSize+XYMin;
 }
