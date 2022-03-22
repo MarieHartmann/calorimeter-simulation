@@ -9,7 +9,7 @@ The documentation for this project can be found at https://npac.pages.in2p3.fr/c
 - Antoine Laudrain
 - Aurelien Martens
 
-## Student on this project
+## Students on this project
 
 - Line Delagrange
 - Marie Hartmann
